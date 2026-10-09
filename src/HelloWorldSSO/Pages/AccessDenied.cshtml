@@ -1,0 +1,15 @@
+@page "/access-denied"
+@{
+    ViewData["Title"] = "Access denied";
+    var error = TempData["AuthError"] as string;
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <h1 class="h4">Access denied</h1>
+        <div class="alert alert-warning">
+            @(error ?? "You don't have permission to view this page.")
+        </div>
+        <a asp-page="/Login" asp-route-slug="" class="btn btn-outline-primary">Back to sign in</a>
+    </div>
+</div>

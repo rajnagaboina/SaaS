@@ -1,0 +1,11 @@
+@{
+    var path = Context.Request.Path.Value ?? "";
+}
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+        <a class="nav-link @(path.StartsWith("/admin/sso", StringComparison.OrdinalIgnoreCase) ? "active" : "")" href="/admin/sso">Single sign-on</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(path.StartsWith("/admin/users", StringComparison.OrdinalIgnoreCase) ? "active" : "")" href="/admin/users">Users &amp; invitations</a>
+    </li>
+</ul>

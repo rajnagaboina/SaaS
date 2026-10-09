@@ -1,0 +1,84 @@
+@page "/platform/customers/{id:guid}"
+@model HelloWorldSSO.Pages.Platform.CustomerModel
+@{
+    ViewData["Title"] = Model.Customer.Name;
+    var c = Model.Customer;
+}
+
+<a asp-page="Index" class="small">&larr; Customers</a>
+<div class="d-flex align-items-center gap-3 mt-1 mb-3">
+    <h1 class="h4 mb-0">@c.Name</h1>
+    <span class="badge @(c.Status == CustomerStatus.Active ? "bg-success" : "bg-danger")">@c.Status</span>
+    <form method="post" asp-page-handler="SetStatus" class="ms-auto">
+        <input type="hidden" name="status" value="@(c.Status == CustomerStatus.Active ? CustomerStatus.Suspended : CustomerStatus.Active)" />
+        <button class="btn btn-sm btn-outline-@(c.Status == CustomerStatus.Active ? "danger" : "success")">
+            @(c.Status == CustomerStatus.Active ? "Suspend" : "Reactivate")
+        </button>
+    </form>
+</div>
+<p class="text-muted">Login page: <code>/login/@c.Slug</code></p>
+
+@if (Model.Error is not null)
+{
+    <div class="alert alert-danger">@Model.Error</div>
+}
+@if (TempData["InviteLink"] is string link)
+{
+    <partial name="_InviteLink" model="link" />
+}
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h2 class="h6">Invite customer administrator</h2>
+                <form method="post" asp-page-handler="InviteAdmin" class="d-flex gap-2">
+                    <input asp-for="AdminEmail" type="email" class="form-control" placeholder="admin@customer.com" required />
+                    <button class="btn btn-primary">Invite</button>
+                </form>
+                <p class="small text-muted mt-2 mb-0">The invitee signs in with the matching account to become an administrator, then configures SSO themselves.</p>
+            </div>
+        </div>
+
+        <h2 class="h6">SSO configurations</h2>
+        <ul class="list-group mb-4">
+            @foreach (var s in Model.Configurations)
+            {
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>@s.AuthenticationType <span class="small text-muted">@(s.EntraTenantId ?? s.SamlEntityId)</span></span>
+                    <partial name="_SsoStatusBadge" model="s.Status" />
+                </li>
+            }
+            @if (Model.Configurations.Count == 0)
+            {
+                <li class="list-group-item text-muted">Not configured</li>
+            }
+        </ul>
+
+        <h2 class="h6">Users</h2>
+        <ul class="list-group">
+            @foreach (var u in Model.Users)
+            {
+                <li class="list-group-item small">@u.DisplayName &lt;@u.Email&gt; &middot; @u.Role &middot; @u.Status</li>
+            }
+        </ul>
+    </div>
+    <div class="col-lg-6">
+        <h2 class="h6">Audit log</h2>
+        <div class="table-responsive">
+            <table class="table table-sm small">
+                <thead><tr><th>When (UTC)</th><th>Action</th><th>Actor / details</th></tr></thead>
+                <tbody>
+                @foreach (var a in Model.AuditLogs)
+                {
+                    <tr>
+                        <td class="text-nowrap">@a.CreatedAt.ToString("MM-dd HH:mm:ss")</td>
+                        <td>@a.Action</td>
+                        <td>@a.Actor<br /><span class="text-muted">@a.Details</span></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,92 @@
+@page "/admin/sso/entra/{id:guid}"
+@model HelloWorldSSO.Pages.Admin.Sso.EntraModel
+@{
+    ViewData["Title"] = "Microsoft Entra ID SSO";
+    var c = Model.Config;
+}
+
+<partial name="_AdminNav" />
+<a href="/admin/sso" class="small">&larr; All configurations</a>
+
+<div class="row g-4 mt-1">
+    <div class="col-lg-7">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <h1 class="h5">Microsoft Entra ID SSO</h1>
+                    <partial name="_SsoStatusBadge" model="c.Status" />
+                </div>
+
+                <partial name="_OperationResult" model="Model.Result" />
+                <partial name="_TestStatus" model="c" />
+
+                <form method="post" asp-page-handler="Save">
+                    <label for="TenantId" class="form-label">Customer Tenant ID</label>
+                    <input id="TenantId" name="TenantId" class="form-control font-monospace" value="@(Model.TenantId ?? c.EntraTenantId)"
+                           placeholder="00000000-0000-0000-0000-000000000000" disabled="@(!Model.IsEditable)" />
+                    <div class="form-text mb-3">Your Directory (tenant) ID, from the Entra admin center &rarr; Overview.</div>
+
+                    <dl class="mb-3">
+                        <dt>Authentication method</dt>
+                        <dd>OpenID Connect</dd>
+                        <dt>Redirect URI</dt>
+                        <dd><code>@Model.RedirectUri</code></dd>
+                    </dl>
+
+                    @if (Model.IsEditable)
+                    {
+                        <button class="btn btn-primary">Save Configuration</button>
+                    }
+                </form>
+
+                <hr />
+                <div class="d-flex flex-wrap gap-2">
+                    <form method="post" asp-page-handler="Test">
+                        <button class="btn btn-outline-primary" disabled="@(c.Status is not (SsoStatus.Testing or SsoStatus.Active))">Test Connection</button>
+                    </form>
+                    @if (c.Status == SsoStatus.Testing)
+                    {
+                        <form method="post" asp-page-handler="Activate">
+                            <button class="btn btn-success" disabled="@(!c.CanActivate)">Activate SSO</button>
+                        </form>
+                    }
+                    @if (c.Status != SsoStatus.Disabled)
+                    {
+                        <form method="post" asp-page-handler="Disable" class="ms-auto">
+                            <button class="btn btn-outline-danger">Disable</button>
+                        </form>
+                    }
+                </div>
+                @if (c.Status == SsoStatus.Testing && !c.CanActivate)
+                {
+                    <p class="small text-muted mt-2 mb-0">Sign in with an account from your tenant using <em>Test Connection</em>; activation unlocks after a successful test.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card bg-light border-0">
+            <div class="card-body small">
+                <h2 class="h6">What you may need to do in your tenant</h2>
+                <p>HelloWorldSSO uses a single multitenant app registration, so you don't need to create one. Your tenant gets an
+                    <em>enterprise application</em> for HelloWorldSSO when someone first consents.</p>
+                <ol class="ps-3">
+                    <li class="mb-2"><strong>Grant consent.</strong> If your tenant blocks user consent, a Global or Cloud Application Administrator must consent for the organization.
+                        @if (Model.AdminConsentUrl is not null)
+                        {
+                            <br /><a href="@Model.AdminConsentUrl" class="btn btn-sm btn-outline-secondary mt-1">Grant admin consent</a>
+                        }
+                        else
+                        {
+                            <br /><span class="text-muted">Save your tenant ID to get the consent link.</span>
+                        }
+                    </li>
+                    <li class="mb-2"><strong>Optionally restrict access.</strong> In Entra admin center &rarr; Enterprise applications &rarr; HelloWorldSSO &rarr; Properties,
+                        set <em>Assignment required</em> to Yes, then assign users or groups.</li>
+                    <li><strong>Test, then activate.</strong> Only accounts from the tenant ID above will be accepted.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>

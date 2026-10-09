@@ -1,0 +1,20 @@
+@page "/auth/error"
+@{
+    ViewData["Title"] = "Sign-in failed";
+    var reason = Request.Query["reason"].ToString();
+    var message = reason switch
+    {
+        "entra" => "Microsoft sign-in did not complete. You may have cancelled, or your organization may not have granted access to this application.",
+        "saml" => "Your identity provider's response could not be verified. Ask your administrator to check the SAML configuration.",
+        "expired" => "Your sign-in session expired. Please try again.",
+        _ => "Sign-in did not complete.",
+    };
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h1 class="h4">Sign-in failed</h1>
+        <div class="alert alert-danger">@message</div>
+        <a asp-page="/Login" class="btn btn-primary">Try again</a>
+    </div>
+</div>

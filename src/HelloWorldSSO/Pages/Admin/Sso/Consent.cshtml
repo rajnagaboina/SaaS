@@ -1,0 +1,27 @@
+@page "/admin/sso/consent"
+@{
+    ViewData["Title"] = "Admin consent";
+    var granted = string.Equals(Request.Query["admin_consent"], "True", StringComparison.OrdinalIgnoreCase);
+    var error = Request.Query["error_description"].ToString();
+    var tenant = Request.Query["tenant"].ToString();
+    Guid.TryParse(Request.Query["state"], out var configId);
+}
+
+<partial name="_AdminNav" />
+<h1 class="h5">Admin consent</h1>
+@if (granted)
+{
+    <div class="alert alert-success">Consent was granted for tenant <code>@tenant</code>. Users in that tenant can now sign in to HelloWorldSSO.</div>
+}
+else
+{
+    <div class="alert alert-warning">Consent was not granted. @error</div>
+}
+@if (configId != Guid.Empty)
+{
+    <a href="/admin/sso/entra/@configId" class="btn btn-primary">Back to configuration</a>
+}
+else
+{
+    <a href="/admin/sso" class="btn btn-primary">Back to SSO configuration</a>
+}

@@ -1,0 +1,39 @@
+@page "/invite/{token?}"
+@model InviteModel
+@{
+    ViewData["Title"] = "Accept invitation";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                @if (Model.Invitation is null)
+                {
+                    <h1 class="h4">Invitation unavailable</h1>
+                    <p class="text-muted">This invitation link is invalid, has expired, or has already been used. Ask your administrator for a new one.</p>
+                }
+                else
+                {
+                    <h1 class="h4">Join @Model.Invitation.Customer!.Name</h1>
+                    <p>You've been invited as <strong>@Model.Invitation.Role</strong>.</p>
+                    <p class="text-muted small">
+                        Sign in with the account for <strong>@Model.Invitation.Email</strong>. That account will be linked to
+                        @Model.Invitation.Customer.Name and this link will stop working.
+                    </p>
+
+                    <form method="post">
+                        <button class="btn btn-primary w-100 mb-2">Sign in with Microsoft</button>
+                    </form>
+                    @foreach (var saml in Model.SamlConfigurations)
+                    {
+                        <form method="post">
+                            <input type="hidden" name="samlConfigurationId" value="@saml.Id" />
+                            <button class="btn btn-outline-primary w-100 mb-2">Sign in with your organization (SAML)</button>
+                        </form>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>

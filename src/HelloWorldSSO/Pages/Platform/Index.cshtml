@@ -1,0 +1,42 @@
+@page "/platform"
+@model HelloWorldSSO.Pages.Platform.IndexModel
+@{
+    ViewData["Title"] = "Customers";
+}
+
+<h1 class="h4 mb-3">Customers</h1>
+@if (Model.Error is not null)
+{
+    <div class="alert alert-danger">@Model.Error</div>
+}
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <table class="table align-middle">
+            <thead><tr><th>Name</th><th>Login identifier</th><th>Status</th><th>Active SSO</th></tr></thead>
+            <tbody>
+            @foreach (var c in Model.Customers)
+            {
+                <tr>
+                    <td><a asp-page="Customer" asp-route-id="@c.Id">@c.Name</a></td>
+                    <td><code>@c.Slug</code></td>
+                    <td>@c.Status</td>
+                    <td class="small">@(string.Join(", ", c.SsoConfigurations.Where(s => s.Status == SsoStatus.Active).Select(s => s.AuthenticationType)) is { Length: > 0 } a ? a : "none")</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="h6">New customer</h2>
+                <form method="post" asp-page-handler="Create">
+                    <input asp-for="Name" class="form-control mb-2" placeholder="Organization name" required />
+                    <input asp-for="Slug" class="form-control mb-2" placeholder="login identifier, e.g. contoso" required pattern="[a-z0-9-]+" />
+                    <button class="btn btn-primary btn-sm">Create</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

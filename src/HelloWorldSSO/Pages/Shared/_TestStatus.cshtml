@@ -1,0 +1,12 @@
+@model SsoConfiguration
+@if (Model.LastTestedAt is not null)
+{
+    <div class="alert @(Model.LastTestSucceeded ? "alert-success" : "alert-danger") small">
+        <strong>Last test @(Model.LastTestSucceeded ? "succeeded" : "failed")</strong>
+        (@Model.LastTestedAt.Value.ToString("yyyy-MM-dd HH:mm") UTC): @Model.LastTestMessage
+    </div>
+}
+@if (Model.Status == SsoStatus.Active)
+{
+    <div class="alert alert-success small">Active since @Model.ActivatedAt?.ToString("yyyy-MM-dd HH:mm") UTC. Users can sign in with this configuration.</div>
+}

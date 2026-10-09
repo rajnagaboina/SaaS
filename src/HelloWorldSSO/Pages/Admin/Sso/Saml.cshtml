@@ -1,0 +1,106 @@
+@page "/admin/sso/saml/{id:guid}"
+@model HelloWorldSSO.Pages.Admin.Sso.SamlModel
+@{
+    ViewData["Title"] = "SAML SSO Setup";
+    var c = Model.Config;
+}
+
+<partial name="_AdminNav" />
+<a href="/admin/sso" class="small">&larr; All configurations</a>
+
+<div class="row g-4 mt-1">
+    <div class="col-lg-7">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <h1 class="h5">SAML SSO Setup</h1>
+                    <partial name="_SsoStatusBadge" model="c.Status" />
+                </div>
+
+                <partial name="_OperationResult" model="Model.Result" />
+                <partial name="_TestStatus" model="c" />
+
+                <h2 class="h6 mt-3">1. Configure your identity provider</h2>
+                <dl class="small">
+                    <dt>Service Provider Entity ID (Audience)</dt>
+                    <dd><code>@Model.SpEntityId</code></dd>
+                    <dt>Assertion Consumer Service URL (Reply URL)</dt>
+                    <dd><code>@Model.AcsUrl</code> <span class="text-muted">HTTP-POST binding</span></dd>
+                    <dt>Service Provider Metadata</dt>
+                    <dd><a href="@Model.SpMetadataUrl" class="btn btn-sm btn-outline-secondary" download="helloworldsso-sp-metadata.xml">Download Metadata</a></dd>
+                </dl>
+
+                <h2 class="h6 mt-4">2. Provide your Identity Provider Metadata</h2>
+                @if (Model.IsEditable)
+                {
+                    <form method="post" asp-page-handler="Validate" enctype="multipart/form-data">
+                        <label for="MetadataFile" class="form-label small">Upload XML Metadata</label>
+                        <input type="file" id="MetadataFile" name="MetadataFile" accept=".xml,application/xml,text/xml" class="form-control mb-2" />
+                        <div class="text-center text-muted small my-2">OR</div>
+                        <label for="MetadataUrl" class="form-label small">Metadata URL</label>
+                        <input id="MetadataUrl" name="MetadataUrl" class="form-control mb-3" placeholder="https://idp.example.com/metadata.xml"
+                               value="@(Model.MetadataUrl ?? c.SamlMetadataUrl)" />
+                        <button class="btn btn-primary">Validate Configuration</button>
+                    </form>
+                }
+                else
+                {
+                    <p class="small text-muted">@c.Status configurations can't be changed. Create a new SAML configuration to update metadata.</p>
+                }
+
+                @if (c.SamlEntityId is not null)
+                {
+                    <h2 class="h6 mt-4">Validated identity provider</h2>
+                    <dl class="small mb-0">
+                        <dt>IdP Entity ID (Issuer)</dt><dd><code>@c.SamlEntityId</code></dd>
+                        <dt>Single sign-on URL</dt><dd><code>@c.SamlSsoUrl</code> <span class="text-muted">@c.SamlSsoBinding</span></dd>
+                        <dt>Signing certificates</dt>
+                        <dd>
+                            @foreach (var cert in Model.SigningCertificates)
+                            {
+                                <div><code>@cert.Thumbprint</code> <span class="text-muted">@cert.Subject, expires @cert.NotAfter.ToString("yyyy-MM-dd")</span></div>
+                            }
+                        </dd>
+                    </dl>
+                }
+
+                <hr />
+                <div class="d-flex flex-wrap gap-2">
+                    <form method="post" asp-page-handler="Test">
+                        <button class="btn btn-outline-primary" disabled="@(c.Status is not (SsoStatus.Testing or SsoStatus.Active))">Test Login</button>
+                    </form>
+                    @if (c.Status == SsoStatus.Testing)
+                    {
+                        <form method="post" asp-page-handler="Activate">
+                            <button class="btn btn-success" disabled="@(!c.CanActivate)">Activate SSO</button>
+                        </form>
+                    }
+                    @if (c.Status != SsoStatus.Disabled)
+                    {
+                        <form method="post" asp-page-handler="Disable" class="ms-auto">
+                            <button class="btn btn-outline-danger">Disable</button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card bg-light border-0">
+            <div class="card-body small">
+                <h2 class="h6">How SAML setup works</h2>
+                <p>HelloWorldSSO is the <strong>Service Provider</strong>; your identity provider (Entra ID, Okta, ADFS, PingFederate, Google Workspace, &hellip;) is the <strong>Identity Provider</strong>.</p>
+                <ol class="ps-3">
+                    <li class="mb-2">Create a SAML application in your IdP using the Entity ID and ACS URL, or import our SP metadata.</li>
+                    <li class="mb-2">Configure a <strong>persistent</strong> NameID (or email address). Transient NameIDs change on every sign-in and can't be linked to an account.</li>
+                    <li class="mb-2">Send an email attribute so users can be identified in the user list.</li>
+                    <li class="mb-2">Sign the response or the assertion with SHA-256.</li>
+                    <li class="mb-2">Upload your IdP metadata, or give its HTTPS URL. We validate it and store the issuer, sign-in URL and signing certificates; we don't re-fetch it automatically.</li>
+                    <li>Use <em>Test Login</em> to confirm the round trip, then <em>Activate SSO</em>.</li>
+                </ol>
+                <p class="mb-0">Sign-ins are always started from HelloWorldSSO; IdP-initiated sign-in is not accepted.</p>
+            </div>
+        </div>
+    </div>
+</div>

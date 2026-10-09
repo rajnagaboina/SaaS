@@ -1,0 +1,87 @@
+@page "/admin/users"
+@model HelloWorldSSO.Pages.Admin.UsersModel
+@{
+    ViewData["Title"] = "Users";
+}
+
+<partial name="_AdminNav" />
+
+@if (Model.Error is not null)
+{
+    <div class="alert alert-danger">@Model.Error</div>
+}
+@if (TempData["InviteLink"] is string link)
+{
+    <partial name="_InviteLink" model="link" />
+}
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <h1 class="h5">Users in @Model.Customer.Name</h1>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead><tr><th>Name</th><th>Role</th><th>Provider</th><th>Last sign-in</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var u in Model.Users)
+                {
+                    <tr>
+                        <td>@u.DisplayName<br /><span class="small text-muted">@u.Email</span></td>
+                        <td>@u.Role</td>
+                        <td class="small">@u.IdentityProvider</td>
+                        <td class="small">@(u.LastSignInAt?.ToString("yyyy-MM-dd HH:mm") ?? "never")</td>
+                        <td><span class="badge @(u.Status == UserStatus.Active ? "bg-success" : "bg-secondary")">@u.Status</span></td>
+                        <td>
+                            @if (u.Id != User.GetUserId())
+                            {
+                                <form method="post" asp-page-handler="SetStatus">
+                                    <input type="hidden" name="userId" value="@u.Id" />
+                                    <input type="hidden" name="status" value="@(u.Status == UserStatus.Active ? UserStatus.Disabled : UserStatus.Active)" />
+                                    <button class="btn btn-sm btn-outline-secondary">@(u.Status == UserStatus.Active ? "Disable" : "Enable")</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+
+        <form method="post" asp-page-handler="AutoProvision" class="mt-3">
+            <input type="hidden" name="enabled" value="@((!Model.Customer.AutoProvisionUsers).ToString())" />
+            <span class="small">Automatic user provisioning is <strong>@(Model.Customer.AutoProvisionUsers ? "on" : "off")</strong>:
+                @(Model.Customer.AutoProvisionUsers
+                    ? "anyone your active identity provider lets sign in gets the User role."
+                    : "only invited users can sign in.")</span>
+            <button class="btn btn-sm btn-link">Turn @(Model.Customer.AutoProvisionUsers ? "off" : "on")</button>
+        </form>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="h6">Invite a user</h2>
+                <form method="post" asp-page-handler="Invite">
+                    <input asp-for="InviteEmail" type="email" class="form-control mb-2" placeholder="name@company.com" required />
+                    <select asp-for="InviteRole" class="form-select mb-2">
+                        <option value="@UserRoles.User">User</option>
+                        <option value="@UserRoles.Admin">Administrator</option>
+                    </select>
+                    <button class="btn btn-primary btn-sm">Create invitation</button>
+                </form>
+                <p class="small text-muted mt-2 mb-0">Administrators can only be added by invitation. The link is shown once and expires in 7 days.</p>
+            </div>
+        </div>
+
+        @if (Model.Invitations.Count > 0)
+        {
+            <h2 class="h6 mt-4">Recent invitations</h2>
+            <ul class="list-unstyled small">
+                @foreach (var i in Model.Invitations)
+                {
+                    <li class="mb-1">@i.Email &middot; @i.Role &middot;
+                        @(i.RedeemedAt is not null ? "accepted" : i.ExpiresAt < DateTime.UtcNow ? "expired" : "pending")</li>
+                }
+            </ul>
+        }
+    </div>
+</div>

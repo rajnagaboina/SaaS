@@ -1,0 +1,33 @@
+@page "/dev/login"
+@model HelloWorldSSO.Pages.Dev.LoginModel
+@{
+    ViewData["Title"] = "Development sign-in";
+}
+
+<div class="alert alert-warning">Development only. This page does not exist outside the Development environment.</div>
+<h1 class="h4 mb-3">Sign in as a seeded user</h1>
+
+<table class="table align-middle">
+    <thead><tr><th>Organization</th><th>User</th><th>Role</th><th>Provider</th><th></th></tr></thead>
+    <tbody>
+    @foreach (var user in Model.Users)
+    {
+        <tr>
+            <td>@user.Customer!.Name</td>
+            <td>@user.DisplayName<br /><span class="text-muted small">@user.Email</span></td>
+            <td>@user.Role</td>
+            <td>@user.IdentityProvider</td>
+            <td>
+                <form method="post" asp-page-handler="User">
+                    <input type="hidden" name="userId" value="@user.Id" />
+                    <button class="btn btn-sm btn-primary">Sign in</button>
+                </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<form method="post" asp-page-handler="Operator">
+    <button class="btn btn-outline-secondary">Sign in as platform operator</button>
+</form>

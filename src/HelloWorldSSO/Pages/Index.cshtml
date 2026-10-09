@@ -1,0 +1,18 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Hello World";
+}
+
+<div class="text-center py-5">
+    <h1 class="display-5">Hello, @User.Identity?.Name!</h1>
+
+    <p class="lead">Welcome to HelloWorldSSO.</p>
+
+    <p>You are authenticated@(User.GetCustomerName() is { } org ? $" as a member of {org}" : "").</p>
+
+    <p class="text-muted small">
+        Signed in via @(User.FindFirst(AppClaims.IdentityProvider)?.Value)
+        &middot; role @(string.Join(", ", User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(r => r.Value)))
+    </p>
+</div>

@@ -1,0 +1,64 @@
+@page "/login/{slug?}"
+@model LoginModel
+@{
+    ViewData["Title"] = "Sign in";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h1 class="h4 mb-1">HelloWorldSSO</h1>
+
+                @if (Model.Error is not null)
+                {
+                    <div class="alert alert-danger mt-3">@Model.Error</div>
+                }
+
+                @if (Model.Customer is null)
+                {
+                    <p class="text-muted">Sign in with your organization's account.</p>
+                    <form method="post" asp-page-handler="Find">
+                        <input type="hidden" asp-for="ReturnUrl" />
+                        <label asp-for="Organization" class="form-label">Organization identifier</label>
+                        <input asp-for="Organization" class="form-control mb-3" placeholder="e.g. contoso" autofocus />
+                        <button class="btn btn-primary w-100">Continue</button>
+                    </form>
+                }
+                else
+                {
+                    <p class="text-muted mb-4">Signing in to <strong>@Model.Customer.Name</strong>
+                        <a asp-page="/Login" asp-route-slug="" class="ms-2 small">Change</a></p>
+
+                    @if (Model.ActiveConfigurations.Count == 0)
+                    {
+                        <div class="alert alert-warning">Single sign-on hasn't been set up for this organization yet. Contact your administrator.</div>
+                    }
+
+                    @foreach (var config in Model.ActiveConfigurations)
+                    {
+                        <form method="post" asp-page-handler="SignIn" class="mb-2">
+                            <input type="hidden" asp-for="ReturnUrl" />
+                            <input type="hidden" name="configurationId" value="@config.Id" />
+                            <button class="btn btn-primary w-100">
+                                @(config.AuthenticationType == AuthenticationTypes.EntraOidc
+                                    ? "Sign in with Microsoft"
+                                    : "Sign in with your organization (SAML)")
+                            </button>
+                        </form>
+                    }
+
+                    <hr />
+                    <form method="post" asp-page-handler="Recovery">
+                        <input type="hidden" asp-for="ReturnUrl" />
+                        <button class="btn btn-link btn-sm p-0">Administrator sign-in with linked Microsoft account</button>
+                    </form>
+                }
+            </div>
+        </div>
+
+        <form method="post" asp-page-handler="Operator" asp-route-slug="" class="text-center mt-3">
+            <button class="btn btn-link btn-sm text-muted">Platform operator sign-in</button>
+        </form>
+    </div>
+</div>

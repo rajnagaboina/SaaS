@@ -1,0 +1,66 @@
+﻿@page "/admin/sso"
+@model HelloWorldSSO.Pages.Admin.Sso.IndexModel
+@{
+    ViewData["Title"] = "SSO Configuration";
+}
+
+<partial name="_AdminNav" />
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h1 class="h5 mb-0">SSO Configuration</h1>
+                <p class="text-muted">Organization: <strong>@User.GetCustomerName()</strong></p>
+
+                <form method="post">
+                    <p class="mb-2">Choose your authentication provider:</p>
+                    @foreach (var method in Model.SupportedMethods)
+                    {
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" asp-for="AuthenticationType" value="@method" id="m-@method" />
+                            <label class="form-check-label" for="m-@method">
+                                @(method == AuthenticationTypes.EntraOidc ? "Microsoft Entra ID" : "SAML 2.0")
+                            </label>
+                        </div>
+                    }
+                    <span asp-validation-for="AuthenticationType" class="text-danger d-block mb-2"></span>
+                    <div class="text-end">
+                        <button class="btn btn-primary">Continue</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <h2 class="h6 text-uppercase text-muted">Configurations</h2>
+        @if (Model.Configurations.Count == 0)
+        {
+            <p class="text-muted">Not configured. Choose a provider to begin.</p>
+        }
+        else
+        {
+            <div class="list-group">
+                @foreach (var c in Model.Configurations)
+                {
+                    var target = c.AuthenticationType == AuthenticationTypes.Saml ? "Saml" : "Entra";
+                    <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                       asp-page="@target" asp-route-id="@c.Id">
+                        <span>
+                            <strong>@(c.AuthenticationType == AuthenticationTypes.Saml ? "SAML 2.0" : "Microsoft Entra ID")</strong>
+                            <br />
+                            <span class="small text-muted">
+                                @(c.AuthenticationType == AuthenticationTypes.Saml ? c.SamlEntityId ?? "No metadata yet" : c.EntraTenantId ?? "No tenant yet")
+                            </span>
+                        </span>
+                        <partial name="_SsoStatusBadge" model="c.Status" />
+                    </a>
+                }
+            </div>
+            <p class="small text-muted mt-2">
+                Active configurations can't be edited. To change one, create a new configuration, test and activate it, then disable the old one.
+            </p>
+        }
+    </div>
+</div>

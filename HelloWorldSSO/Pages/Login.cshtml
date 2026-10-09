@@ -1,0 +1,22 @@
+@page
+@model LoginModel
+@{ ViewData["Title"] = "Sign in"; }
+<h1>Sign in</h1>
+<form method="post">
+    <div class="mb-3">
+        <label asp-for="Organization" class="form-label">Organization</label>
+        <input asp-for="Organization" class="form-control" />
+    </div>
+    @if (Model.Error is not null) { <div class="text-danger mb-3">@Model.Error</div> }
+    <button class="btn btn-primary">Continue</button>
+</form>
+@if (Model.DevLoginEnabled)
+{
+    <hr />
+    <form method="post" asp-page-handler="Dev">
+        <p class="text-muted">Development only: bootstrap sign-in for a pre-provisioned user.</p>
+        <input name="organization" class="form-control mb-2" placeholder="Organization" />
+        <input name="email" class="form-control mb-2" placeholder="Email" />
+        <button class="btn btn-secondary">Dev sign in</button>
+    </form>
+}

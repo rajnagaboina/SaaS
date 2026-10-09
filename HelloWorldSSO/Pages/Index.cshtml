@@ -1,0 +1,12 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Hello World";
+}
+
+<div class="text-center">
+    <h1>Hello, @User.Identity?.Name!</h1>
+    <p>Welcome to HelloWorldSSO.</p>
+    <p>You are authenticated with @Model.CustomerName via @Model.Provider.</p>
+    <form method="post" asp-page="/Logout"><button class="btn btn-outline-secondary">Sign out</button></form>
+</div>

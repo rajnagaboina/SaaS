@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="HelloWorldSSO.Tests/HelloWorldSSO.Tests.csproj" />
+  <Project Path="HelloWorldSSO/HelloWorldSSO.csproj" />
+</Solution>

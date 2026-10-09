@@ -1,0 +1,38 @@
+@page
+@model HelloWorldSSO.Pages.Admin.Sso.IndexModel
+@{ ViewData["Title"] = "SSO Configuration"; }
+<h1>SSO Configuration</h1>
+<p>Organization: <strong>@Model.CustomerName</strong></p>
+@if (Model.Message is not null) { <div class="alert alert-info">@Model.Message</div> }
+
+<h2>Choose your authentication provider</h2>
+<form method="get">
+    <div class="form-check"><input class="form-check-input" type="radio" name="provider" value="EntraOIDC" id="p1" checked /><label class="form-check-label" for="p1">Microsoft Entra ID</label></div>
+    <div class="form-check"><input class="form-check-input" type="radio" name="provider" value="SAML" id="p2" /><label class="form-check-label" for="p2">SAML 2.0</label></div>
+    <button class="btn btn-primary mt-2" asp-page-handler="Continue">Continue</button>
+</form>
+
+<h2 class="mt-4">Configurations</h2>
+<table class="table">
+    <thead><tr><th>Type</th><th>Identity provider</th><th>Status</th><th>Last successful test</th><th></th></tr></thead>
+    <tbody>
+    @foreach (var c in Model.Configurations)
+    {
+        <tr>
+            <td>@c.AuthenticationType</td>
+            <td>@(c.AuthenticationType == "SAML" ? c.SamlEntityId : c.EntraTenantId)</td>
+            <td>@c.Status</td>
+            <td>@(c.LastTestSucceededAt?.ToString("u") ?? "never")</td>
+            <td>
+                <form method="post" class="d-inline">
+                    <input type="hidden" name="id" value="@c.Id" />
+                    @if (c.Status is "Pending" or "Testing") { <button class="btn btn-sm btn-outline-primary" asp-page-handler="Test">Test Login</button> }
+                    @if (c.Status == "Testing") { <button class="btn btn-sm btn-success" asp-page-handler="Activate">Activate SSO</button> }
+                    @if (c.Status != "Disabled") { <button class="btn btn-sm btn-outline-danger" asp-page-handler="Disable">Disable</button> }
+                </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+@if (!Model.Configurations.Any()) { <p>Not configured.</p> }

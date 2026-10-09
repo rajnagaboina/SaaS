@@ -1,0 +1,19 @@
+@page
+@model HelloWorldSSO.Pages.Admin.Sso.EntraModel
+@{ ViewData["Title"] = "Microsoft Entra ID SSO"; }
+<h1>Microsoft Entra ID SSO</h1>
+<p>Authentication method: OpenID Connect</p>
+<p>Redirect URI: <code>@Model.RedirectUri</code></p>
+<div class="alert alert-secondary">
+    A global administrator in your tenant may need to grant admin consent to this application and assign users or groups
+    to its enterprise application. Save, then use <em>Test Login</em> on the SSO page before activating.
+</div>
+@if (Model.Error is not null) { <div class="alert alert-danger">@Model.Error</div> }
+<form method="post">
+    <div class="mb-3">
+        <label asp-for="TenantId" class="form-label">Customer Tenant ID</label>
+        <input asp-for="TenantId" class="form-control" />
+    </div>
+    <button class="btn btn-primary">Save Configuration</button>
+    <a class="btn btn-link" asp-page="Index">Back</a>
+</form>
